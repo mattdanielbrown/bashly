@@ -46,7 +46,12 @@ module Bashly
       { modified:, added:, removed: }
     end
 
+    def wait
+      sleep
+    rescue ::Interrupt => e
+      raise Bashly::Interrupt, cause: e
+    end
+
     def listen = Listen
-    def wait = sleep
   end
 end
