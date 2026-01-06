@@ -12,4 +12,4 @@ services:
 
   pandoc-test:
     <<: *default
-      command: sh -ec "command -v pandoc >/dev/null"
+    command: sh -ec "command -v pandoc >/dev/null"
