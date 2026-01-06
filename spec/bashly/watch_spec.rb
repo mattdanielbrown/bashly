@@ -55,6 +55,15 @@ describe Watch do
       end
     end
 
+    context 'when the watch is interrupted' do
+      it 'stops the listener and re-raises as Bashly::Interrupt' do
+        allow(subject).to receive(:sleep).and_raise(Interrupt)
+
+        expect(listener).to receive(:stop)
+        expect { subject.on_change { |_| nil } }.to raise_error(Bashly::Interrupt)
+      end
+    end
+
     context 'when no block is provided' do
       it 'raises ArgumentError' do
         expect { subject.on_change }.to raise_error(ArgumentError, 'block required')
