@@ -49,8 +49,6 @@ module Bashly
     def wait
       sleep
     rescue ::Interrupt => e
-      raise e if e.is_a?(Bashly::Interrupt)
-
       raise Bashly::Interrupt, cause: e
     end
 
