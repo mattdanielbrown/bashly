@@ -249,7 +249,7 @@ properties:
     description: |-
       The latency in seconds for the file system changes watcher
       https://bashly.dev/usage/settings/#watch_latency
-    type: float
+    type: number
     default: 1.0
   usage_colors:
     title: usage colors
