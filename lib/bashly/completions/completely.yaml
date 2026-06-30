@@ -92,6 +92,7 @@ bashly doc: &doc
 - -i
 - arg
 - arg.allowed
+- arg.completions
 - arg.default
 - arg.help
 - arg.name

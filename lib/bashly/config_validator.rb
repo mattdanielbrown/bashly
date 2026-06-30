@@ -90,6 +90,8 @@ module Bashly
 
     def assert_arg(key, value)
       assert_hash key, value, keys: Script::Argument.option_keys
+      refute value['allowed'] && value['completions'], "#{key} cannot have both nub`allowed` and nub`completions`"
+
       assert_string "#{key}.name", value['name']
       assert_optional_string "#{key}.help", value['help']
       assert_string_or_array "#{key}.default", value['default']
@@ -99,6 +101,7 @@ module Bashly
       assert_boolean "#{key}.unique", value['unique']
 
       assert_array "#{key}.allowed", value['allowed'], of: :string
+      assert_array "#{key}.completions", value['completions'], of: :string
 
       refute value['name'].match(/^-/), "#{key}.name must not start with '-'"
 

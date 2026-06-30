@@ -38,6 +38,20 @@ arg.allowed
 
   See https://bashly.dev/configuration/argument/#allowed
 
+arg.completions
+
+  Specify a list of additional completion suggestions when used in conjunction
+  with bashly add completions.
+
+    args:
+    - name: path
+      help: File or directory to process
+      completions:
+      - <file>
+      - <directory>
+
+  See https://bashly.dev/configuration/argument/#completions
+
 arg.default
 
   Specify the value to apply when not provided by the user.

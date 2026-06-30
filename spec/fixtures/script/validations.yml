@@ -4,6 +4,14 @@
   args:
   - name: --user
 
+:arg_allowed_and_completions:
+  name: invalid
+  help: arg with both allowed and completions
+  args:
+  - name: path
+    allowed: [one, two]
+    completions: [<file>]
+
 :arg_default_array_without_repeatable:
   name: invalid
   help: default cannot be an array without repeatable
