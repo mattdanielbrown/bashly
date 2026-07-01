@@ -1,8 +1,9 @@
 ---
 patterns:
 - cli [root options]
-- cli images [root_global options] [images options]
-- cli images ls [root_global options] [images_ls options]
+- cli images|img [root_global options] [images options]
+- cli images|img list|ls [root_global options] [images_global options] [images_list
+  options]
 options:
   root:
   - "--help|-h"
@@ -12,7 +13,10 @@ options:
   - "--debug"
   images:
   - "--help|-h"
-  images_ls:
+  - "--verbose"
+  images_global:
+  - "--verbose"
+  images_list:
   - "--help|-h"
   - "--env <env>"
 tokens:

@@ -4,86 +4,250 @@
 # completely (https://github.com/bashly-framework/completely)
 # Modifying it manually is not recommended
 
-_say_completions_filter() {
-  local words="$1"
-  local cur=${COMP_WORDS[COMP_CWORD]}
-  local result=()
+_say_completions_flag_expects_value() {
+  case "$1" in
+    --color|-c) return 0 ;;
+    --path) return 0 ;;
+  esac
 
-  # words the user already typed (excluding the command itself)
-  local used=()
-  if ((COMP_CWORD > 1)); then
-    used=("${COMP_WORDS[@]:1:$((COMP_CWORD - 1))}")
-  fi
-
-  if [[ "${cur:0:1}" == "-" ]]; then
-    # Completing an option: offer everything (including options)
-    echo "$words"
-
-  else
-    # Completing a non-option: offer only non-options,
-    # and don't re-offer ones already used earlier in the line.
-    for word in $words; do
-      [[ "${word:0:1}" == "-" ]] && continue
-
-      local seen=0
-      for u in "${used[@]}"; do
-        if [[ "$u" == "$word" ]]; then
-          seen=1
-          break
-        fi
-      done
-      ((!seen)) && result+=("$word")
-    done
-
-    echo "${result[*]}"
-  fi
+  return 1
 }
 
 _say_completions() {
   local cur=${COMP_WORDS[COMP_CWORD]}
-  local compwords=()
+  local prev=
   if ((COMP_CWORD > 0)); then
-    compwords=("${COMP_WORDS[@]:1:$((COMP_CWORD - 1))}")
+    prev=${COMP_WORDS[$((COMP_CWORD - 1))]}
   fi
-  local compline="${compwords[*]}"
+
+  local completed=()
+  if ((COMP_CWORD > 1)); then
+    completed=("${COMP_WORDS[@]:1:$((COMP_CWORD - 1))}")
+  fi
+
+  local non_options=()
+  local completed_options=()
+  local skip_next=0
+  for word in "${completed[@]}"; do
+    if ((skip_next)); then
+      skip_next=0
+      continue
+    fi
+
+    if [[ "${word:0:1}" == "-" ]]; then
+      completed_options+=("$word")
+      if _say_completions_flag_expects_value "$word"; then
+        skip_next=1
+      fi
+      continue
+    fi
+
+    non_options+=("$word")
+  done
+
+  local route_id=
+  local route_word_count=-1
+  local route_has_positionals=0
+  local positional_index=0
+  if (( ${#non_options[@]} >= 0 )) &&
+    (( 0 > route_word_count ))
+  then
+    route_id=0
+    route_word_count=0
+    route_has_positionals=0
+    positional_index=$((${#non_options[@]} - 0))
+  fi
+
+  if (( ${#non_options[@]} >= 1 )) &&
+    (( 1 > route_word_count )) &&
+    [[ "${non_options[0]}" == "hello" ]]
+  then
+    route_id=1
+    route_word_count=1
+    route_has_positionals=0
+    positional_index=$((${#non_options[@]} - 1))
+  fi
+
+  if (( ${#non_options[@]} >= 2 )) &&
+    (( 2 > route_word_count )) &&
+    [[ "${non_options[0]}" == "hello" ]] &&
+    [[ "${non_options[1]}" == "world" ]]
+  then
+    route_id=2
+    route_word_count=2
+    route_has_positionals=0
+    positional_index=$((${#non_options[@]} - 2))
+  fi
+
+  if (( ${#non_options[@]} >= 1 )) &&
+    (( 1 > route_word_count )) &&
+    [[ "${non_options[0]}" == "goodbye" ]]
+  then
+    route_id=3
+    route_word_count=1
+    route_has_positionals=0
+    positional_index=$((${#non_options[@]} - 1))
+  fi
+
+  if (( ${#non_options[@]} >= 2 )) &&
+    (( 2 > route_word_count )) &&
+    [[ "${non_options[0]}" == "goodbye" ]] &&
+    [[ "${non_options[1]}" == "universe" ]]
+  then
+    route_id=4
+    route_word_count=2
+    route_has_positionals=0
+    positional_index=$((${#non_options[@]} - 2))
+  fi
 
   COMPREPLY=()
 
-  case "$compline" in
-    'goodbye universe'*'--color')
-      while read -r; do COMPREPLY+=("$REPLY"); done < <(compgen -W "$(_say_completions_filter "green red")" -- "$cur")
-      ;;
+  if [[ -z "$route_id" ]] || { (( route_word_count == 0 )) && (( !route_has_positionals )) && [[ "${cur:0:1}" != "-" ]]; }; then
+    while read -r; do COMPREPLY+=("$REPLY"); done < <(compgen -W "hello goodbye" -- "$cur")
+    return
+  fi
 
-    'goodbye universe'*'--path')
-      compopt -o filenames 2>/dev/null
+  case "$route_id:$prev" in
+    4:--color|4:-c)
+      while read -r; do COMPREPLY+=("$REPLY"); done < <(compgen -W "green red" -- "$cur")
+      return
+      ;;
+    4:--path)
       while read -r; do COMPREPLY+=("$REPLY"); done < <(compgen -A file -- "$cur")
+      return
       ;;
+  esac
 
-    'goodbye universe'*'-c')
-      while read -r; do COMPREPLY+=("$REPLY"); done < <(compgen -W "$(_say_completions_filter "green red")" -- "$cur")
-      ;;
+  if [[ "${cur:0:1}" == "-" ]]; then
+    case "$route_id" in
+      0)
+        local words=()
+        local option_seen=0
+        for completed_option in "${completed_options[@]}"; do
+          case "$completed_option" in
+            --help|-h) option_seen=1 ;;
+          esac
+        done
+        if ((!option_seen)); then
+          words+=("--help" "-h")
+        fi
+        local option_seen=0
+        for completed_option in "${completed_options[@]}"; do
+          case "$completed_option" in
+            --version|-v) option_seen=1 ;;
+          esac
+        done
+        if ((!option_seen)); then
+          words+=("--version" "-v")
+        fi
+        while read -r; do COMPREPLY+=("$REPLY"); done < <(compgen -W "${words[*]}" -- "$cur")
+        return
+        ;;
+      1)
+        local words=()
+        local option_seen=0
+        for completed_option in "${completed_options[@]}"; do
+          case "$completed_option" in
+            --help|-h) option_seen=1 ;;
+          esac
+        done
+        if ((!option_seen)); then
+          words+=("--help" "-h")
+        fi
+        while read -r; do COMPREPLY+=("$REPLY"); done < <(compgen -W "${words[*]}" -- "$cur")
+        return
+        ;;
+      2)
+        local words=()
+        local option_seen=0
+        for completed_option in "${completed_options[@]}"; do
+          case "$completed_option" in
+            --help|-h) option_seen=1 ;;
+          esac
+        done
+        if ((!option_seen)); then
+          words+=("--help" "-h")
+        fi
+        local option_seen=0
+        for completed_option in "${completed_options[@]}"; do
+          case "$completed_option" in
+            --force) option_seen=1 ;;
+          esac
+        done
+        if ((!option_seen)); then
+          words+=("--force")
+        fi
+        local option_seen=0
+        for completed_option in "${completed_options[@]}"; do
+          case "$completed_option" in
+            --verbose) option_seen=1 ;;
+          esac
+        done
+        if ((!option_seen)); then
+          words+=("--verbose")
+        fi
+        while read -r; do COMPREPLY+=("$REPLY"); done < <(compgen -W "${words[*]}" -- "$cur")
+        return
+        ;;
+      3)
+        local words=()
+        local option_seen=0
+        for completed_option in "${completed_options[@]}"; do
+          case "$completed_option" in
+            --help|-h) option_seen=1 ;;
+          esac
+        done
+        if ((!option_seen)); then
+          words+=("--help" "-h")
+        fi
+        while read -r; do COMPREPLY+=("$REPLY"); done < <(compgen -W "${words[*]}" -- "$cur")
+        return
+        ;;
+      4)
+        local words=()
+        local option_seen=0
+        for completed_option in "${completed_options[@]}"; do
+          case "$completed_option" in
+            --help|-h) option_seen=1 ;;
+          esac
+        done
+        if ((!option_seen)); then
+          words+=("--help" "-h")
+        fi
+        local option_seen=0
+        for completed_option in "${completed_options[@]}"; do
+          case "$completed_option" in
+            --color|-c) option_seen=1 ;;
+          esac
+        done
+        if ((!option_seen)); then
+          words+=("--color" "-c")
+        fi
+        local option_seen=0
+        for completed_option in "${completed_options[@]}"; do
+          case "$completed_option" in
+            --path) option_seen=1 ;;
+          esac
+        done
+        if ((!option_seen)); then
+          words+=("--path")
+        fi
+        local option_seen=0
+        for completed_option in "${completed_options[@]}"; do
+          case "$completed_option" in
+            --verbose|-v) option_seen=1 ;;
+          esac
+        done
+        if ((!option_seen)); then
+          words+=("--verbose" "-v")
+        fi
+        while read -r; do COMPREPLY+=("$REPLY"); done < <(compgen -W "${words[*]}" -- "$cur")
+        return
+        ;;
+    esac
+  fi
 
-    'goodbye universe'*)
-      while read -r; do COMPREPLY+=("$REPLY"); done < <(compgen -W "$(_say_completions_filter "$(git branch) --color --help --path --verbose -c -h -v")" -- "$cur")
-      ;;
-
-    'hello world'*)
-      compopt -o filenames 2>/dev/null
-      while read -r; do COMPREPLY+=("$REPLY"); done < <(compgen -A directory -A user -W "$(_say_completions_filter "--force --help --verbose -h")" -- "$cur")
-      ;;
-
-    'goodbye'*)
-      while read -r; do COMPREPLY+=("$REPLY"); done < <(compgen -W "$(_say_completions_filter "--help -h universe")" -- "$cur")
-      ;;
-
-    'hello'*)
-      while read -r; do COMPREPLY+=("$REPLY"); done < <(compgen -W "$(_say_completions_filter "--help -h world")" -- "$cur")
-      ;;
-
-    *)
-      while read -r; do COMPREPLY+=("$REPLY"); done < <(compgen -W "$(_say_completions_filter "--help --version -h -v goodbye hello")" -- "$cur")
-      ;;
-
+  case "$route_id:$positional_index" in
   esac
 } &&
   complete -F _say_completions say
