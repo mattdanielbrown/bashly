@@ -46,6 +46,17 @@ describe Script::Command do
     end
   end
 
+  context 'with a command that uses pattern completion sources' do
+    let(:fixture) { :completions_pattern_sources }
+
+    describe '#completion_data' do
+      it 'returns pattern config data with tokens and options' do
+        expect(subject.completion_data.to_yaml)
+          .to match_approval('completions/pattern_sources')
+      end
+    end
+  end
+
   context 'with a command that has nested command aliases' do
     let(:fixture) { :nested_aliases }
 
