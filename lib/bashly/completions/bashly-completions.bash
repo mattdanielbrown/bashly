@@ -4,53 +4,22 @@
 # completely (https://github.com/bashly-framework/completely)
 # Modifying it manually is not recommended
 
-_bashly_completions_flag_expects_value() {
-  case "$1" in
-    --env|-e) return 0 ;;
-    --wrap|-r) return 0 ;;
-    --source|-s) return 0 ;;
-    --show|-s) return 0 ;;
+_bashly_completions_route_flag_expects_value() {
+  case "$1:$2" in
+    4:--env|4:-e) return 0 ;;
+    4:--wrap|4:-r) return 0 ;;
+    5:--source|5:-s) return 0 ;;
+    8:--show|8:-s) return 0 ;;
   esac
 
   return 1
 }
 
-_bashly_completions() {
-  local cur=${COMP_WORDS[COMP_CWORD]}
-  local prev=
-  if ((COMP_CWORD > 0)); then
-    prev=${COMP_WORDS[$((COMP_CWORD - 1))]}
-  fi
-
-  local completed=()
-  if ((COMP_CWORD > 1)); then
-    completed=("${COMP_WORDS[@]:1:$((COMP_CWORD - 1))}")
-  fi
-
-  local non_options=()
-  local completed_options=()
-  local skip_next=0
-  for word in "${completed[@]}"; do
-    if ((skip_next)); then
-      skip_next=0
-      continue
-    fi
-
-    if [[ "${word:0:1}" == "-" ]]; then
-      completed_options+=("$word")
-      if _bashly_completions_flag_expects_value "$word"; then
-        skip_next=1
-      fi
-      continue
-    fi
-
-    non_options+=("$word")
-  done
-
-  local route_id=
-  local route_word_count=-1
-  local route_has_positionals=0
-  local positional_index=0
+_bashly_completions_resolve_route() {
+  route_id=
+  route_word_count=-1
+  route_has_positionals=0
+  positional_index=0
   if (( ${#non_options[@]} >= 0 )) &&
     (( 0 > route_word_count ))
   then
@@ -149,6 +118,47 @@ _bashly_completions() {
     route_has_positionals=0
     positional_index=$((${#non_options[@]} - 1))
   fi
+
+}
+
+_bashly_completions() {
+  local cur=${COMP_WORDS[COMP_CWORD]}
+  local prev=
+  if ((COMP_CWORD > 0)); then
+    prev=${COMP_WORDS[$((COMP_CWORD - 1))]}
+  fi
+
+  local completed=()
+  if ((COMP_CWORD > 1)); then
+    completed=("${COMP_WORDS[@]:1:$((COMP_CWORD - 1))}")
+  fi
+
+  local non_options=()
+  local completed_options=()
+  local route_id=
+  local route_word_count=-1
+  local route_has_positionals=0
+  local positional_index=0
+  _bashly_completions_resolve_route
+
+  local skip_next=0
+  for word in "${completed[@]}"; do
+    if ((skip_next)); then
+      skip_next=0
+      continue
+    fi
+
+    if [[ "${word:0:1}" == "-" ]]; then
+      completed_options+=("$word")
+      if _bashly_completions_route_flag_expects_value "$route_id" "$word"; then
+        skip_next=1
+      fi
+      continue
+    fi
+
+    non_options+=("$word")
+    _bashly_completions_resolve_route
+  done
 
   COMPREPLY=()
 
