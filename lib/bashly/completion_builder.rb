@@ -27,7 +27,7 @@ module Bashly
       pattern_groups = inherited_global_groups.dup
       pattern_groups << local_group if local_group
 
-      @patterns << pattern_for(command, pattern_groups)
+      @patterns << pattern_for(command, pattern_groups) unless visible_default_command(command)
 
       child_global_groups = inherited_global_groups.dup
       if command.global_flags?
@@ -36,6 +36,7 @@ module Bashly
       end
 
       command.visible_commands.each do |child|
+        add_default_command_pattern command, child, pattern_groups
         add_command child, inherited_global_groups: child_global_groups
       end
     end
@@ -44,6 +45,38 @@ module Bashly
       parts = [command_path(command)]
       parts.concat(option_groups.map { |group| "[#{group} options]" })
       parts.concat positional_tokens(command)
+      parts.join ' '
+    end
+
+    def add_default_command_pattern(parent, command, parent_option_groups)
+      return unless command.default
+
+      default_group = add_default_options parent, command, parent_option_groups
+      option_groups = default_group ? [default_group] : []
+
+      @patterns << pattern_for_default_command(parent, command, option_groups)
+    end
+
+    def add_default_options(parent, command, parent_option_groups)
+      local_group = add_local_options command
+      group_names = parent_option_groups.dup
+      group_names << local_group if local_group
+
+      entries = group_names.flat_map { |name| @options[name] || [] }.uniq
+      return if entries.empty?
+
+      name = token_name "#{group_name(parent)}_#{group_name(command)}_default"
+      @options[name] = entries
+      name
+    end
+
+    def pattern_for_default_command(parent, command, option_groups)
+      parts = [command_path(parent)]
+      parts.concat(option_groups.map { |group| "[#{group} options]" })
+      parts.concat positional_tokens(
+        command,
+        first_source_extra: static_source(parent.visible_command_aliases)
+      )
       parts.join ' '
     end
 
@@ -102,12 +135,18 @@ module Bashly
       register_token flag.arg || flag.name, command, flag_source(flag)
     end
 
-    def positional_tokens(command)
-      command.args.map do |arg|
-        token_name = register_token arg.name, command, arg_source(arg, command)
+    def positional_tokens(command, first_source_extra: nil)
+      command.args.map.with_index do |arg, index|
+        source = arg_source arg, command
+        source = merge_sources(first_source_extra, source) if index.zero? && first_source_extra
+        token_name = register_token arg.name, command, source
         suffix = arg.repeatable ? '...' : nil
         "<#{token_name}>#{suffix}"
       end
+    end
+
+    def merge_sources(*sources)
+      sources.compact.flatten.uniq
     end
 
     def flag_source(flag)
@@ -176,6 +215,10 @@ module Bashly
 
     def group_name(command)
       token_name command.root_command? ? 'root' : command.action_name
+    end
+
+    def visible_default_command(command)
+      command.visible_commands.find(&:default)
     end
 
     def token_name(value)
