@@ -13,6 +13,17 @@ _cli_completions_route_flag_expects_value() {
   return 1
 }
 
+_cli_completions_option_seen() {
+  local completed_option option_name
+  for completed_option in "${completed_options[@]}"; do
+    for option_name in "$@"; do
+      [[ "$completed_option" == "$option_name" ]] && return 0
+    done
+  done
+
+  return 1
+}
+
 _cli_completions_resolve_route() {
   route_id=
   route_word_count=-1
@@ -108,79 +119,23 @@ _cli_completions() {
     case "$route_id" in
       0)
         local words=()
-        local option_seen=0
-        for completed_option in "${completed_options[@]}"; do
-          case "$completed_option" in
-            --help|-h) option_seen=1 ;;
-          esac
-        done
-        if ((!option_seen)); then
-          words+=("--help" "-h")
-        fi
-        local option_seen=0
-        for completed_option in "${completed_options[@]}"; do
-          case "$completed_option" in
-            --version|-v) option_seen=1 ;;
-          esac
-        done
-        if ((!option_seen)); then
-          words+=("--version" "-v")
-        fi
+        _cli_completions_option_seen "--help" "-h" || words+=("--help" "-h")
+        _cli_completions_option_seen "--version" "-v" || words+=("--version" "-v")
         while read -r; do COMPREPLY+=("$REPLY"); done < <(compgen -W "${words[*]}" -- "$cur")
         return
         ;;
       1)
         local words=()
-        local option_seen=0
-        for completed_option in "${completed_options[@]}"; do
-          case "$completed_option" in
-            --help|-h) option_seen=1 ;;
-          esac
-        done
-        if ((!option_seen)); then
-          words+=("--help" "-h")
-        fi
-        local option_seen=0
-        for completed_option in "${completed_options[@]}"; do
-          case "$completed_option" in
-            --force|-f) option_seen=1 ;;
-          esac
-        done
-        if ((!option_seen)); then
-          words+=("--force" "-f")
-        fi
+        _cli_completions_option_seen "--help" "-h" || words+=("--help" "-h")
+        _cli_completions_option_seen "--force" "-f" || words+=("--force" "-f")
         while read -r; do COMPREPLY+=("$REPLY"); done < <(compgen -W "${words[*]}" -- "$cur")
         return
         ;;
       2)
         local words=()
-        local option_seen=0
-        for completed_option in "${completed_options[@]}"; do
-          case "$completed_option" in
-            --help|-h) option_seen=1 ;;
-          esac
-        done
-        if ((!option_seen)); then
-          words+=("--help" "-h")
-        fi
-        local option_seen=0
-        for completed_option in "${completed_options[@]}"; do
-          case "$completed_option" in
-            --user|-u) option_seen=1 ;;
-          esac
-        done
-        if ((!option_seen)); then
-          words+=("--user" "-u")
-        fi
-        local option_seen=0
-        for completed_option in "${completed_options[@]}"; do
-          case "$completed_option" in
-            --password|-p) option_seen=1 ;;
-          esac
-        done
-        if ((!option_seen)); then
-          words+=("--password" "-p")
-        fi
+        _cli_completions_option_seen "--help" "-h" || words+=("--help" "-h")
+        _cli_completions_option_seen "--user" "-u" || words+=("--user" "-u")
+        _cli_completions_option_seen "--password" "-p" || words+=("--password" "-p")
         while read -r; do COMPREPLY+=("$REPLY"); done < <(compgen -W "${words[*]}" -- "$cur")
         return
         ;;
