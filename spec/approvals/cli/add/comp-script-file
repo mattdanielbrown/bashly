@@ -4,51 +4,20 @@
 # completely (https://github.com/bashly-framework/completely)
 # Modifying it manually is not recommended
 
-_cli_completions_flag_expects_value() {
-  case "$1" in
-    --user|-u) return 0 ;;
-    --password|-p) return 0 ;;
+_cli_completions_route_flag_expects_value() {
+  case "$1:$2" in
+    2:--user|2:-u) return 0 ;;
+    2:--password|2:-p) return 0 ;;
   esac
 
   return 1
 }
 
-_cli_completions() {
-  local cur=${COMP_WORDS[COMP_CWORD]}
-  local prev=
-  if ((COMP_CWORD > 0)); then
-    prev=${COMP_WORDS[$((COMP_CWORD - 1))]}
-  fi
-
-  local completed=()
-  if ((COMP_CWORD > 1)); then
-    completed=("${COMP_WORDS[@]:1:$((COMP_CWORD - 1))}")
-  fi
-
-  local non_options=()
-  local completed_options=()
-  local skip_next=0
-  for word in "${completed[@]}"; do
-    if ((skip_next)); then
-      skip_next=0
-      continue
-    fi
-
-    if [[ "${word:0:1}" == "-" ]]; then
-      completed_options+=("$word")
-      if _cli_completions_flag_expects_value "$word"; then
-        skip_next=1
-      fi
-      continue
-    fi
-
-    non_options+=("$word")
-  done
-
-  local route_id=
-  local route_word_count=-1
-  local route_has_positionals=0
-  local positional_index=0
+_cli_completions_resolve_route() {
+  route_id=
+  route_word_count=-1
+  route_has_positionals=0
+  positional_index=0
   if (( ${#non_options[@]} >= 0 )) &&
     (( 0 > route_word_count ))
   then
@@ -77,6 +46,47 @@ _cli_completions() {
     route_has_positionals=1
     positional_index=$((${#non_options[@]} - 1))
   fi
+
+}
+
+_cli_completions() {
+  local cur=${COMP_WORDS[COMP_CWORD]}
+  local prev=
+  if ((COMP_CWORD > 0)); then
+    prev=${COMP_WORDS[$((COMP_CWORD - 1))]}
+  fi
+
+  local completed=()
+  if ((COMP_CWORD > 1)); then
+    completed=("${COMP_WORDS[@]:1:$((COMP_CWORD - 1))}")
+  fi
+
+  local non_options=()
+  local completed_options=()
+  local route_id=
+  local route_word_count=-1
+  local route_has_positionals=0
+  local positional_index=0
+  _cli_completions_resolve_route
+
+  local skip_next=0
+  for word in "${completed[@]}"; do
+    if ((skip_next)); then
+      skip_next=0
+      continue
+    fi
+
+    if [[ "${word:0:1}" == "-" ]]; then
+      completed_options+=("$word")
+      if _cli_completions_route_flag_expects_value "$route_id" "$word"; then
+        skip_next=1
+      fi
+      continue
+    fi
+
+    non_options+=("$word")
+    _cli_completions_resolve_route
+  done
 
   COMPREPLY=()
 
