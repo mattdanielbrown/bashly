@@ -44,6 +44,20 @@
           arg: env
           allowed: [prod, dev]
 
+:default_command:
+  command:
+    name: cli
+    commands:
+    - name: get
+      default: true
+      args:
+      - name: package
+        completions: [hello, world]
+      flags:
+      - long: --source
+        arg: source
+        completions: [local, remote]
+
 :token_collisions:
   command:
     name: cli

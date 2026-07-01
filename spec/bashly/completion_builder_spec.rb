@@ -16,4 +16,19 @@ describe CompletionBuilder do
       end
     end
   end
+
+  context 'with a default command' do
+    let(:command) { Script::Command.new fixtures[:default_command]['command'] }
+    let(:data) { described_class.new(command).call }
+
+    it 'adds default command argument completions to the parent command route' do
+      expect(data['patterns']).to include(
+        'cli [root_get_default options] <package>',
+        'cli get [get options] <get_package>'
+      )
+
+      expect(data['tokens']['package']).to eq %w[get hello world]
+      expect(data['tokens']['get_package']).to eq %w[hello world]
+    end
+  end
 end
