@@ -136,6 +136,6 @@ tokens:
     - variable.name
     - variable.value
   render_source:
-    - :mandoc
-    - :markdown
-    - :markdown_github
+    - ":mandoc"
+    - ":markdown"
+    - ":markdown_github"

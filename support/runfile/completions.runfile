@@ -1,4 +1,5 @@
 require 'bashly'
+require 'completely'
 
 summary 'Generate bash completions for bashly itself'
 

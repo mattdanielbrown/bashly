@@ -68,5 +68,5 @@ docs.each do |doc|
 end
 >   render_source:
 render_sources.each do |source|
-  = "    - #{source}"
+  = "    - #{source.inspect}"
 end
