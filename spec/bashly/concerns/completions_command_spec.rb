@@ -11,9 +11,19 @@ describe Script::Command do
   end
 
   describe '#completion_function' do
-    it 'returns a bash completion script wrapped in a function' do
+    it 'returns the generated bash completion script wrapped in a function' do
+      expected_data = subject.completion_data
+      completion_generator = instance_double Completely::Completions
+
+      expect(Completely::Completions).to receive(:new)
+        .with(expected_data)
+        .and_return completion_generator
+      expect(completion_generator).to receive(:wrapper_function)
+        .with('custom_name')
+        .and_return 'wrapped completion script'
+
       expect(subject.completion_function('custom_name'))
-        .to match_approval('completions/function')
+        .to eq 'wrapped completion script'
     end
   end
 
@@ -28,9 +38,18 @@ describe Script::Command do
     end
 
     describe '#completion_script' do
-      it 'returns a bash completion script' do
+      it 'returns the generated bash completion script' do
+        expected_data = subject.completion_data
+        completion_generator = instance_double Completely::Completions
+
+        expect(Completely::Completions).to receive(:new)
+          .with(expected_data)
+          .and_return completion_generator
+        expect(completion_generator).to receive(:script)
+          .and_return 'completion script'
+
         expect(subject.completion_script)
-          .to match_approval('completions/script')
+          .to eq 'completion script'
       end
     end
   end
