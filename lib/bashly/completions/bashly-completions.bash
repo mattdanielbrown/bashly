@@ -4,121 +4,136 @@
 # completely (https://github.com/bashly-framework/completely)
 # Modifying it manually is not recommended
 
-_bashly_completions_route_flag_expects_value() {
+_bashly_completions_node_flag_state() {
   case "$1:$2" in
-    4:--env|4:-e) return 0 ;;
-    4:--wrap|4:-r) return 0 ;;
-    5:--source|5:-s) return 0 ;;
-    8:--show|8:-s) return 0 ;;
+    0:--help|0:-h) return 0 ;;
+    0:--version|0:-v) return 0 ;;
+    1:--help|1:-h) return 0 ;;
+    1:--minimal|1:-m) return 0 ;;
+    2:--help|2:-h) return 0 ;;
+    3:--help|3:-h) return 0 ;;
+    3:--verbose|3:-v) return 0 ;;
+    4:--env|4:-e) return 2 ;;
+    4:--wrap|4:-r) return 2 ;;
+    4:--help|4:-h) return 0 ;;
+    4:--force|4:-f) return 0 ;;
+    4:--quiet|4:-q) return 0 ;;
+    4:--upgrade|4:-u) return 0 ;;
+    4:--watch|4:-w) return 0 ;;
+    5:--source|5:-s) return 2 ;;
+    5:--help|5:-h) return 0 ;;
+    5:--force|5:-f) return 0 ;;
+    5:--list|5:-l) return 0 ;;
+    6:--help|6:-h) return 0 ;;
+    6:--index|6:-i) return 0 ;;
+    7:--help|7:-h) return 0 ;;
+    7:--install|7:-i) return 0 ;;
+    7:--uninstall|7:-u) return 0 ;;
+    8:--show|8:-s) return 2 ;;
+    8:--help|8:-h) return 0 ;;
+    8:--watch|8:-w) return 0 ;;
+    8:--list|8:-l) return 0 ;;
+    8:--about|8:-a) return 0 ;;
+    9:--help|9:-h) return 0 ;;
   esac
 
   return 1
 }
 
-_bashly_completions_resolve_route() {
-  route_id=
-  route_word_count=-1
-  route_has_positionals=0
+_bashly_completions_option_seen() {
+  local completed_option option_name
+  for completed_option in "${completed_options[@]}"; do
+    for option_name in "$@"; do
+      [[ "$completed_option" == "$option_name" ]] && return 0
+    done
+  done
+
+  return 1
+}
+
+_bashly_completions_resolve_node() {
+  node_id=0
+  node_word_count=0
   positional_index=0
-  if (( ${#non_options[@]} >= 0 )) &&
-    (( 0 > route_word_count ))
-  then
-    route_id=0
-    route_word_count=0
-    route_has_positionals=0
-    positional_index=$((${#non_options[@]} - 0))
-  fi
 
-  if (( ${#non_options[@]} >= 1 )) &&
-    (( 1 > route_word_count )) &&
-    [[ "${non_options[0]}" == "init" || "${non_options[0]}" == "i" ]]
-  then
-    route_id=1
-    route_word_count=1
-    route_has_positionals=0
-    positional_index=$((${#non_options[@]} - 1))
-  fi
+  local word
+  for word in "${non_options[@]}"; do
+    case "$node_id:$word" in
+      0:init)
+        node_id=1
+        node_word_count=1
+        ;;
+      0:i)
+        node_id=1
+        node_word_count=1
+        ;;
+      0:preview)
+        node_id=2
+        node_word_count=1
+        ;;
+      0:p)
+        node_id=2
+        node_word_count=1
+        ;;
+      0:validate)
+        node_id=3
+        node_word_count=1
+        ;;
+      0:v)
+        node_id=3
+        node_word_count=1
+        ;;
+      0:generate)
+        node_id=4
+        node_word_count=1
+        ;;
+      0:build)
+        node_id=4
+        node_word_count=1
+        ;;
+      0:g)
+        node_id=4
+        node_word_count=1
+        ;;
+      0:add)
+        node_id=5
+        node_word_count=1
+        ;;
+      0:a)
+        node_id=5
+        node_word_count=1
+        ;;
+      0:doc)
+        node_id=6
+        node_word_count=1
+        ;;
+      0:completions)
+        node_id=7
+        node_word_count=1
+        ;;
+      0:c)
+        node_id=7
+        node_word_count=1
+        ;;
+      0:render)
+        node_id=8
+        node_word_count=1
+        ;;
+      0:shell)
+        node_id=9
+        node_word_count=1
+        ;;
+      0:s)
+        node_id=9
+        node_word_count=1
+        ;;
+      *)
+        break
+        ;;
+    esac
+  done
 
-  if (( ${#non_options[@]} >= 1 )) &&
-    (( 1 > route_word_count )) &&
-    [[ "${non_options[0]}" == "preview" || "${non_options[0]}" == "p" ]]
-  then
-    route_id=2
-    route_word_count=1
-    route_has_positionals=0
-    positional_index=$((${#non_options[@]} - 1))
-  fi
-
-  if (( ${#non_options[@]} >= 1 )) &&
-    (( 1 > route_word_count )) &&
-    [[ "${non_options[0]}" == "validate" || "${non_options[0]}" == "v" ]]
-  then
-    route_id=3
-    route_word_count=1
-    route_has_positionals=0
-    positional_index=$((${#non_options[@]} - 1))
-  fi
-
-  if (( ${#non_options[@]} >= 1 )) &&
-    (( 1 > route_word_count )) &&
-    [[ "${non_options[0]}" == "generate" || "${non_options[0]}" == "build" || "${non_options[0]}" == "g" ]]
-  then
-    route_id=4
-    route_word_count=1
-    route_has_positionals=0
-    positional_index=$((${#non_options[@]} - 1))
-  fi
-
-  if (( ${#non_options[@]} >= 1 )) &&
-    (( 1 > route_word_count )) &&
-    [[ "${non_options[0]}" == "add" || "${non_options[0]}" == "a" ]]
-  then
-    route_id=5
-    route_word_count=1
-    route_has_positionals=1
-    positional_index=$((${#non_options[@]} - 1))
-  fi
-
-  if (( ${#non_options[@]} >= 1 )) &&
-    (( 1 > route_word_count )) &&
-    [[ "${non_options[0]}" == "doc" ]]
-  then
-    route_id=6
-    route_word_count=1
-    route_has_positionals=1
-    positional_index=$((${#non_options[@]} - 1))
-  fi
-
-  if (( ${#non_options[@]} >= 1 )) &&
-    (( 1 > route_word_count )) &&
-    [[ "${non_options[0]}" == "completions" || "${non_options[0]}" == "c" ]]
-  then
-    route_id=7
-    route_word_count=1
-    route_has_positionals=0
-    positional_index=$((${#non_options[@]} - 1))
-  fi
-
-  if (( ${#non_options[@]} >= 1 )) &&
-    (( 1 > route_word_count )) &&
-    [[ "${non_options[0]}" == "render" ]]
-  then
-    route_id=8
-    route_word_count=1
-    route_has_positionals=1
-    positional_index=$((${#non_options[@]} - 1))
-  fi
-
-  if (( ${#non_options[@]} >= 1 )) &&
-    (( 1 > route_word_count )) &&
-    [[ "${non_options[0]}" == "shell" || "${non_options[0]}" == "s" ]]
-  then
-    route_id=9
-    route_word_count=1
-    route_has_positionals=0
-    positional_index=$((${#non_options[@]} - 1))
-  fi
-
+  positional_index=$((${#non_options[@]} - node_word_count))
 }
 
 _bashly_completions() {
@@ -135,11 +150,12 @@ _bashly_completions() {
 
   local non_options=()
   local completed_options=()
-  local route_id=
-  local route_word_count=-1
-  local route_has_positionals=0
+  local node_id=
+  local node_word_count=-1
   local positional_index=0
-  _bashly_completions_resolve_route
+  local invalid_completion=0
+  local flag_state=0
+  _bashly_completions_resolve_node
 
   local skip_next=0
   for word in "${completed[@]}"; do
@@ -149,25 +165,28 @@ _bashly_completions() {
     fi
 
     if [[ "${word:0:1}" == "-" ]]; then
+      _bashly_completions_node_flag_state "$node_id" "$word"
+      flag_state=$?
+      if (( flag_state == 1 )); then
+        invalid_completion=1
+        break
+      fi
+
       completed_options+=("$word")
-      if _bashly_completions_route_flag_expects_value "$route_id" "$word"; then
+      if (( flag_state == 2 )); then
         skip_next=1
       fi
       continue
     fi
 
     non_options+=("$word")
-    _bashly_completions_resolve_route
+    _bashly_completions_resolve_node
   done
 
   COMPREPLY=()
+  (( invalid_completion )) && return
 
-  if [[ -z "$route_id" ]] || { (( route_word_count == 0 )) && (( !route_has_positionals )) && [[ "${cur:0:1}" != "-" ]]; }; then
-    while read -r; do COMPREPLY+=("$REPLY"); done < <(compgen -W "init i preview p validate v generate build g add a doc completions c render shell s" -- "$cur")
-    return
-  fi
-
-  case "$route_id:$prev" in
+  case "$node_id:$prev" in
     4:--env|4:-e)
       while read -r; do COMPREPLY+=("$REPLY"); done < <(compgen -W "development production" -- "$cur")
       return
@@ -183,329 +202,106 @@ _bashly_completions() {
       ;;
   esac
 
+  if [[ "${cur:0:1}" != "-" ]] && (( positional_index == 0 )); then
+    case "$node_id" in
+      0)
+        while read -r; do COMPREPLY+=("$REPLY"); done < <(compgen -W "init i preview p validate v generate build g add a doc completions c render shell s" -- "$cur")
+        return
+        ;;
+    esac
+  fi
+
   if [[ "${cur:0:1}" == "-" ]]; then
-    case "$route_id" in
+    case "$node_id" in
       0)
         local words=()
-        local option_seen=0
-        for completed_option in "${completed_options[@]}"; do
-          case "$completed_option" in
-            --help|-h) option_seen=1 ;;
-          esac
-        done
-        if ((!option_seen)); then
-          words+=("--help" "-h")
-        fi
-        local option_seen=0
-        for completed_option in "${completed_options[@]}"; do
-          case "$completed_option" in
-            --version|-v) option_seen=1 ;;
-          esac
-        done
-        if ((!option_seen)); then
-          words+=("--version" "-v")
-        fi
+        _bashly_completions_option_seen "--help" "-h" || words+=("--help" "-h")
+        _bashly_completions_option_seen "--version" "-v" || words+=("--version" "-v")
         while read -r; do COMPREPLY+=("$REPLY"); done < <(compgen -W "${words[*]}" -- "$cur")
         return
         ;;
       1)
         local words=()
-        local option_seen=0
-        for completed_option in "${completed_options[@]}"; do
-          case "$completed_option" in
-            --help|-h) option_seen=1 ;;
-          esac
-        done
-        if ((!option_seen)); then
-          words+=("--help" "-h")
-        fi
-        local option_seen=0
-        for completed_option in "${completed_options[@]}"; do
-          case "$completed_option" in
-            --minimal|-m) option_seen=1 ;;
-          esac
-        done
-        if ((!option_seen)); then
-          words+=("--minimal" "-m")
-        fi
+        _bashly_completions_option_seen "--help" "-h" || words+=("--help" "-h")
+        _bashly_completions_option_seen "--minimal" "-m" || words+=("--minimal" "-m")
         while read -r; do COMPREPLY+=("$REPLY"); done < <(compgen -W "${words[*]}" -- "$cur")
         return
         ;;
       2)
         local words=()
-        local option_seen=0
-        for completed_option in "${completed_options[@]}"; do
-          case "$completed_option" in
-            --help|-h) option_seen=1 ;;
-          esac
-        done
-        if ((!option_seen)); then
-          words+=("--help" "-h")
-        fi
+        _bashly_completions_option_seen "--help" "-h" || words+=("--help" "-h")
         while read -r; do COMPREPLY+=("$REPLY"); done < <(compgen -W "${words[*]}" -- "$cur")
         return
         ;;
       3)
         local words=()
-        local option_seen=0
-        for completed_option in "${completed_options[@]}"; do
-          case "$completed_option" in
-            --help|-h) option_seen=1 ;;
-          esac
-        done
-        if ((!option_seen)); then
-          words+=("--help" "-h")
-        fi
-        local option_seen=0
-        for completed_option in "${completed_options[@]}"; do
-          case "$completed_option" in
-            --verbose|-v) option_seen=1 ;;
-          esac
-        done
-        if ((!option_seen)); then
-          words+=("--verbose" "-v")
-        fi
+        _bashly_completions_option_seen "--help" "-h" || words+=("--help" "-h")
+        _bashly_completions_option_seen "--verbose" "-v" || words+=("--verbose" "-v")
         while read -r; do COMPREPLY+=("$REPLY"); done < <(compgen -W "${words[*]}" -- "$cur")
         return
         ;;
       4)
         local words=()
-        local option_seen=0
-        for completed_option in "${completed_options[@]}"; do
-          case "$completed_option" in
-            --help|-h) option_seen=1 ;;
-          esac
-        done
-        if ((!option_seen)); then
-          words+=("--help" "-h")
-        fi
-        local option_seen=0
-        for completed_option in "${completed_options[@]}"; do
-          case "$completed_option" in
-            --env|-e) option_seen=1 ;;
-          esac
-        done
-        if ((!option_seen)); then
-          words+=("--env" "-e")
-        fi
-        local option_seen=0
-        for completed_option in "${completed_options[@]}"; do
-          case "$completed_option" in
-            --force|-f) option_seen=1 ;;
-          esac
-        done
-        if ((!option_seen)); then
-          words+=("--force" "-f")
-        fi
-        local option_seen=0
-        for completed_option in "${completed_options[@]}"; do
-          case "$completed_option" in
-            --quiet|-q) option_seen=1 ;;
-          esac
-        done
-        if ((!option_seen)); then
-          words+=("--quiet" "-q")
-        fi
-        local option_seen=0
-        for completed_option in "${completed_options[@]}"; do
-          case "$completed_option" in
-            --upgrade|-u) option_seen=1 ;;
-          esac
-        done
-        if ((!option_seen)); then
-          words+=("--upgrade" "-u")
-        fi
-        local option_seen=0
-        for completed_option in "${completed_options[@]}"; do
-          case "$completed_option" in
-            --watch|-w) option_seen=1 ;;
-          esac
-        done
-        if ((!option_seen)); then
-          words+=("--watch" "-w")
-        fi
-        local option_seen=0
-        for completed_option in "${completed_options[@]}"; do
-          case "$completed_option" in
-            --wrap|-r) option_seen=1 ;;
-          esac
-        done
-        if ((!option_seen)); then
-          words+=("--wrap" "-r")
-        fi
+        _bashly_completions_option_seen "--help" "-h" || words+=("--help" "-h")
+        _bashly_completions_option_seen "--env" "-e" || words+=("--env" "-e")
+        _bashly_completions_option_seen "--force" "-f" || words+=("--force" "-f")
+        _bashly_completions_option_seen "--quiet" "-q" || words+=("--quiet" "-q")
+        _bashly_completions_option_seen "--upgrade" "-u" || words+=("--upgrade" "-u")
+        _bashly_completions_option_seen "--watch" "-w" || words+=("--watch" "-w")
+        _bashly_completions_option_seen "--wrap" "-r" || words+=("--wrap" "-r")
         while read -r; do COMPREPLY+=("$REPLY"); done < <(compgen -W "${words[*]}" -- "$cur")
         return
         ;;
       5)
         local words=()
-        local option_seen=0
-        for completed_option in "${completed_options[@]}"; do
-          case "$completed_option" in
-            --help|-h) option_seen=1 ;;
-          esac
-        done
-        if ((!option_seen)); then
-          words+=("--help" "-h")
-        fi
-        local option_seen=0
-        for completed_option in "${completed_options[@]}"; do
-          case "$completed_option" in
-            --force|-f) option_seen=1 ;;
-          esac
-        done
-        if ((!option_seen)); then
-          words+=("--force" "-f")
-        fi
-        local option_seen=0
-        for completed_option in "${completed_options[@]}"; do
-          case "$completed_option" in
-            --list|-l) option_seen=1 ;;
-          esac
-        done
-        if ((!option_seen)); then
-          words+=("--list" "-l")
-        fi
-        local option_seen=0
-        for completed_option in "${completed_options[@]}"; do
-          case "$completed_option" in
-            --source|-s) option_seen=1 ;;
-          esac
-        done
-        if ((!option_seen)); then
-          words+=("--source" "-s")
-        fi
+        _bashly_completions_option_seen "--help" "-h" || words+=("--help" "-h")
+        _bashly_completions_option_seen "--force" "-f" || words+=("--force" "-f")
+        _bashly_completions_option_seen "--list" "-l" || words+=("--list" "-l")
+        _bashly_completions_option_seen "--source" "-s" || words+=("--source" "-s")
         while read -r; do COMPREPLY+=("$REPLY"); done < <(compgen -W "${words[*]}" -- "$cur")
         return
         ;;
       6)
         local words=()
-        local option_seen=0
-        for completed_option in "${completed_options[@]}"; do
-          case "$completed_option" in
-            --help|-h) option_seen=1 ;;
-          esac
-        done
-        if ((!option_seen)); then
-          words+=("--help" "-h")
-        fi
-        local option_seen=0
-        for completed_option in "${completed_options[@]}"; do
-          case "$completed_option" in
-            --index|-i) option_seen=1 ;;
-          esac
-        done
-        if ((!option_seen)); then
-          words+=("--index" "-i")
-        fi
+        _bashly_completions_option_seen "--help" "-h" || words+=("--help" "-h")
+        _bashly_completions_option_seen "--index" "-i" || words+=("--index" "-i")
         while read -r; do COMPREPLY+=("$REPLY"); done < <(compgen -W "${words[*]}" -- "$cur")
         return
         ;;
       7)
         local words=()
-        local option_seen=0
-        for completed_option in "${completed_options[@]}"; do
-          case "$completed_option" in
-            --help|-h) option_seen=1 ;;
-          esac
-        done
-        if ((!option_seen)); then
-          words+=("--help" "-h")
-        fi
-        local option_seen=0
-        for completed_option in "${completed_options[@]}"; do
-          case "$completed_option" in
-            --install|-i) option_seen=1 ;;
-          esac
-        done
-        if ((!option_seen)); then
-          words+=("--install" "-i")
-        fi
-        local option_seen=0
-        for completed_option in "${completed_options[@]}"; do
-          case "$completed_option" in
-            --uninstall|-u) option_seen=1 ;;
-          esac
-        done
-        if ((!option_seen)); then
-          words+=("--uninstall" "-u")
-        fi
+        _bashly_completions_option_seen "--help" "-h" || words+=("--help" "-h")
+        _bashly_completions_option_seen "--install" "-i" || words+=("--install" "-i")
+        _bashly_completions_option_seen "--uninstall" "-u" || words+=("--uninstall" "-u")
         while read -r; do COMPREPLY+=("$REPLY"); done < <(compgen -W "${words[*]}" -- "$cur")
         return
         ;;
       8)
         local words=()
-        local option_seen=0
-        for completed_option in "${completed_options[@]}"; do
-          case "$completed_option" in
-            --help|-h) option_seen=1 ;;
-          esac
-        done
-        if ((!option_seen)); then
-          words+=("--help" "-h")
-        fi
-        local option_seen=0
-        for completed_option in "${completed_options[@]}"; do
-          case "$completed_option" in
-            --watch|-w) option_seen=1 ;;
-          esac
-        done
-        if ((!option_seen)); then
-          words+=("--watch" "-w")
-        fi
-        local option_seen=0
-        for completed_option in "${completed_options[@]}"; do
-          case "$completed_option" in
-            --show|-s) option_seen=1 ;;
-          esac
-        done
-        if ((!option_seen)); then
-          words+=("--show" "-s")
-        fi
-        local option_seen=0
-        for completed_option in "${completed_options[@]}"; do
-          case "$completed_option" in
-            --list|-l) option_seen=1 ;;
-          esac
-        done
-        if ((!option_seen)); then
-          words+=("--list" "-l")
-        fi
-        local option_seen=0
-        for completed_option in "${completed_options[@]}"; do
-          case "$completed_option" in
-            --about|-a) option_seen=1 ;;
-          esac
-        done
-        if ((!option_seen)); then
-          words+=("--about" "-a")
-        fi
+        _bashly_completions_option_seen "--help" "-h" || words+=("--help" "-h")
+        _bashly_completions_option_seen "--watch" "-w" || words+=("--watch" "-w")
+        _bashly_completions_option_seen "--show" "-s" || words+=("--show" "-s")
+        _bashly_completions_option_seen "--list" "-l" || words+=("--list" "-l")
+        _bashly_completions_option_seen "--about" "-a" || words+=("--about" "-a")
         while read -r; do COMPREPLY+=("$REPLY"); done < <(compgen -W "${words[*]}" -- "$cur")
         return
         ;;
       9)
         local words=()
-        local option_seen=0
-        for completed_option in "${completed_options[@]}"; do
-          case "$completed_option" in
-            --help|-h) option_seen=1 ;;
-          esac
-        done
-        if ((!option_seen)); then
-          words+=("--help" "-h")
-        fi
+        _bashly_completions_option_seen "--help" "-h" || words+=("--help" "-h")
         while read -r; do COMPREPLY+=("$REPLY"); done < <(compgen -W "${words[*]}" -- "$cur")
         return
         ;;
     esac
   fi
 
-  case "$route_id:$positional_index" in
+  case "$node_id:$positional_index" in
     5:0)
       while read -r; do COMPREPLY+=("$REPLY"); done < <(compgen -W "colors completions completions_script completions_yaml config help hooks ini lib render_markdown render_markdown_github render_mandoc settings stacktrace strings validations yaml" -- "$cur")
       return
       ;;
     6:0)
-      while read -r; do COMPREPLY+=("$REPLY"); done < <(compgen -W "arg arg.allowed arg.completions arg.default arg.help arg.name arg.repeatable arg.required arg.validate command command.alias command.args command.catch_all command.commands command.completions command.default command.dependencies command.environment_variables command.examples command.expose command.extensible command.filename command.filters command.flags command.footer command.function command.group command.help command.help_header_override command.name command.private command.variables command.version environment_variable environment_variable.default environment_variable.help environment_variable.name environment_variable.private environment_variable.required environment_variable.validate flag flag.allowed flag.arg flag.completions flag.conflicts flag.default flag.help flag.long flag.needs flag.private flag.repeatable flag.required flag.short flag.unique flag.validate variable variable.name variable.value" -- "$cur")
+      while read -r; do COMPREPLY+=("$REPLY"); done < <(compgen -W "arg arg.allowed arg.completions arg.default arg.help arg.name arg.repeatable arg.required arg.validate command command.alias command.args command.catch_all command.commands command.completions command.default command.dependencies command.environment_variables command.examples command.expose command.extensible command.filename command.filters command.flags command.footer command.function command.group command.help command.help_header_override command.name command.private command.variables command.version environment_variable environment_variable.default environment_variable.help environment_variable.name environment_variable.private environment_variable.required environment_variable.validate flag flag.alias flag.allowed flag.arg flag.completions flag.conflicts flag.default flag.help flag.long flag.needs flag.private flag.repeatable flag.required flag.short flag.unique flag.validate variable variable.name variable.value" -- "$cur")
       return
       ;;
     8:0)

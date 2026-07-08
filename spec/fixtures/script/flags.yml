@@ -3,6 +3,16 @@
   short: -h
   help: show this help
 
+:aliases:
+  long: --container
+  short: -c
+  alias: [--pod, -p]
+  arg: name
+
+:alias_string:
+  long: --container
+  alias: --pod
+
 :long_only:
   long: --long
 

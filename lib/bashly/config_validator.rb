@@ -126,6 +126,7 @@ module Bashly
       assert_optional_string "#{key}.short", value['short']
       assert_optional_string "#{key}.help", value['help']
       assert_optional_string "#{key}.arg", value['arg']
+      assert_string_or_array "#{key}.alias", value['alias']
       assert_string_or_array "#{key}.default", value['default']
       assert_string_or_array "#{key}.validate", value['validate']
 
@@ -139,6 +140,10 @@ module Bashly
 
       assert value['long'].match(/^--[a-zA-Z0-9_-]+$/), "#{key}.long must be in the form of '--name'" if value['long']
       assert value['short'].match(/^-[a-zA-Z0-9]$/), "#{key}.short must be in the form of '-n'" if value['short']
+      Array(value['alias']).each_with_index do |flag_alias, index|
+        alias_key = value['alias'].is_a?(Array) ? "#{key}.alias[#{index}]" : "#{key}.alias"
+        assert_flag_alias alias_key, flag_alias
+      end
       refute value['arg'].match(/^-/), "#{key}.arg must not start with '-'" if value['arg']
 
       refute value['required'] && value['default'], "#{key} cannot have both nub`required` and nub`default`"
@@ -163,6 +168,13 @@ module Bashly
       if value['default'].is_a? Array
         assert value['repeatable'], "#{key}.default array does not make sense without nub`repeatable`"
       end
+    end
+
+    def assert_flag_alias(key, value)
+      assert(
+        value.match(/^--[a-zA-Z0-9_-]+$/) || value.match(/^-[a-zA-Z0-9]$/),
+        "#{key} must be in the form of '--name' or '-n'"
+      )
     end
 
     def assert_env_var(key, value)
@@ -222,8 +234,7 @@ module Bashly
       assert_array "#{key}.variables", value['variables'], of: :var
 
       assert_uniq "#{key}.commands", value['commands'], %w[name alias]
-      assert_uniq "#{key}.flags", value['flags'], 'long'
-      assert_uniq "#{key}.flags", value['flags'], 'short'
+      assert_uniq "#{key}.flags", value['flags'], %w[long short alias]
       assert_uniq "#{key}.args", value['args'], 'name'
 
       if value['function']

@@ -10,20 +10,20 @@ module Bashly
       class << self
         def option_keys
           @option_keys ||= %i[
-            allowed arg completions conflicts default help long needs
+            alias allowed arg completions conflicts default help long needs
             private repeatable required short unique validate
           ]
         end
       end
 
+      def alt
+        return [] unless options['alias']
+
+        options['alias'].is_a?(String) ? [options['alias']] : options['alias']
+      end
+
       def aliases
-        if long && short
-          [long, short]
-        elsif long
-          [long]
-        else
-          [short]
-        end
+        primary_aliases + alt
       end
 
       def default_string
@@ -46,6 +46,12 @@ module Bashly
         result << strings[:required] if required && extended
         result << strings[:repeatable] if repeatable && extended
         result.join ' '
+      end
+
+    private
+
+      def primary_aliases
+        [long, short].compact
       end
     end
   end

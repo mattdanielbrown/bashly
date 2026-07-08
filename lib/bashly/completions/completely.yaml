@@ -118,6 +118,7 @@ tokens:
     - environment_variable.required
     - environment_variable.validate
     - flag
+    - flag.alias
     - flag.allowed
     - flag.arg
     - flag.completions

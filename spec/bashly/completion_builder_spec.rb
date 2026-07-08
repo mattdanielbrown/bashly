@@ -1,8 +1,6 @@
 describe CompletionBuilder do
-  fixtures = load_fixture('completion_builder')
-
   describe '#call' do
-    fixtures.each do |fixture, options|
+    load_fixture('completion_builder').each do |fixture, options|
       context "with :#{fixture}" do
         let(:command) { Script::Command.new options['command'] }
         let(:builder) do
@@ -18,6 +16,7 @@ describe CompletionBuilder do
   end
 
   context 'with a default command' do
+    let(:fixtures) { load_fixture('completion_builder') }
     let(:command) { Script::Command.new fixtures[:default_command]['command'] }
     let(:data) { described_class.new(command).call }
 

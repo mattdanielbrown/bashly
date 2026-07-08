@@ -626,6 +626,20 @@ flag
 
   See https://bashly.dev/configuration/flag/
 
+flag.alias
+
+  Specify one or more aliases for this flag. Each alias must include the -- or
+  - prefix.
+
+    flags:
+    - long: --container
+      short: -c
+      alias: [--pod, -p]
+      arg: name
+      help: Container name
+
+  See https://bashly.dev/configuration/flag/#alias
+
 flag.allowed
 
   Specify a list of allowed values. Can be used in conjunction with default

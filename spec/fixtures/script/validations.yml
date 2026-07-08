@@ -257,6 +257,27 @@
   - long: --user
     arg: --name
 
+:flag_alias:
+  name: invalid
+  help: flag.alias should be a string or array of strings
+  flags:
+  - long: --user
+    alias: 1
+
+:flag_alias_array:
+  name: invalid
+  help: flag.alias array values should be strings
+  flags:
+  - long: --user
+    alias: [--person, 1]
+
+:flag_alias_format:
+  name: invalid
+  help: flag.alias values should be valid flag names
+  flags:
+  - long: --user
+    alias: user
+
 :flag_allowed_and_completions:
   name: invalid
   help: flag with both allowed and completions
@@ -419,6 +440,15 @@
   flags:
   - short: -f
   - short: -f
+
+:non_uniq_flags_aliases:
+  name: invalid
+  help: flag aliases conflict with other flag names
+  flags:
+  - long: --container
+    alias: [--pod, -p]
+  - long: --podman
+    short: -p
   
 :non_uniq_arg_names:
   name: invalid
