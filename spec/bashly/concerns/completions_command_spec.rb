@@ -3,6 +3,7 @@ describe Script::Command do
 
   let(:fixtures) { load_fixture('script/commands') }
   let(:fixture) { :completions_simple }
+  let(:completion_generator) { instance_double Completely::Completions }
 
   describe '#completion_data' do
     it 'returns a data structure for completely' do
@@ -11,17 +12,16 @@ describe Script::Command do
   end
 
   describe '#completion_function' do
-    it 'returns the generated bash completion script wrapped in a function' do
-      expected_data = subject.completion_data
-      completion_generator = instance_double Completely::Completions
-
-      expect(Completely::Completions).to receive(:new)
-        .with(expected_data)
+    before do
+      allow(Completely::Completions).to receive(:new)
+        .with(subject.completion_data)
         .and_return completion_generator
-      expect(completion_generator).to receive(:wrapper_function)
+      allow(completion_generator).to receive(:wrapper_function)
         .with('custom_name')
         .and_return 'wrapped completion script'
+    end
 
+    it 'returns the generated bash completion script wrapped in a function' do
       expect(subject.completion_function('custom_name'))
         .to eq 'wrapped completion script'
     end
@@ -38,16 +38,15 @@ describe Script::Command do
     end
 
     describe '#completion_script' do
-      it 'returns the generated bash completion script' do
-        expected_data = subject.completion_data
-        completion_generator = instance_double Completely::Completions
-
-        expect(Completely::Completions).to receive(:new)
-          .with(expected_data)
+      before do
+        allow(Completely::Completions).to receive(:new)
+          .with(subject.completion_data)
           .and_return completion_generator
-        expect(completion_generator).to receive(:script)
+        allow(completion_generator).to receive(:script)
           .and_return 'completion script'
+      end
 
+      it 'returns the generated bash completion script' do
         expect(subject.completion_script)
           .to eq 'completion script'
       end
