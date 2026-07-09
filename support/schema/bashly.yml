@@ -247,6 +247,13 @@ definitions:
           minLength: 1
           examples:
             - --command
+      negatable:
+        title: negatable
+        description: |-
+          Whether the current flag also accepts its --no- form
+          https://bashly.dev/configuration/flag/#negatable
+        type: boolean
+        default: false
       completions:
         title: completions
         description: |-

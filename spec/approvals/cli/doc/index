@@ -48,6 +48,7 @@ flag.default
 flag.help
 flag.long
 flag.needs
+flag.negatable
 flag.private
 flag.repeatable
 flag.required

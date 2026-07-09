@@ -344,6 +344,44 @@
   flags:
   - long: force
 
+:flag_negatable_type:
+  name: invalid
+  help: flag.negatable should be boolean
+  flags:
+  - long: --color
+    negatable: maybe
+
+:flag_negatable_without_long:
+  name: invalid
+  help: flag.negatable requires long
+  flags:
+  - short: -c
+    negatable: true
+
+:flag_negatable_with_arg:
+  name: invalid
+  help: flag.negatable cannot be used with arg
+  flags:
+  - long: --color
+    arg: mode
+    negatable: true
+
+:flag_negatable_with_repeatable:
+  name: invalid
+  help: flag.negatable cannot be used with repeatable
+  flags:
+  - long: --color
+    repeatable: true
+    negatable: true
+
+:flag_negatable_with_required:
+  name: invalid
+  help: flag.negatable cannot be used with required
+  flags:
+  - long: --color
+    required: true
+    negatable: true
+
 :flag_required_and_default:
   name: invalid
   help: flag cannot have both required and default
@@ -449,6 +487,14 @@
     alias: [--pod, -p]
   - long: --podman
     short: -p
+
+:non_uniq_flags_negatable:
+  name: invalid
+  help: generated negatable flag conflicts with another flag
+  flags:
+  - long: --color
+    negatable: true
+  - long: --no-color
   
 :non_uniq_arg_names:
   name: invalid

@@ -30,4 +30,21 @@ describe CompletionBuilder do
       expect(data['tokens']['get_package']).to eq %w[hello world]
     end
   end
+
+  context 'with a negatable flag' do
+    let(:command) do
+      Script::Command.new(
+        'name'  => 'cli',
+        'flags' => [
+          { 'long' => '--color', 'short' => '-c', 'negatable' => true },
+        ]
+      )
+    end
+
+    it 'adds the negated long option to the same option entry' do
+      data = described_class.new(command).call
+
+      expect(data['options']['root']).to include '--color|--no-color|-c'
+    end
+  end
 end

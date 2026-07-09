@@ -130,6 +130,7 @@ module Bashly
       assert_string_or_array "#{key}.default", value['default']
       assert_string_or_array "#{key}.validate", value['validate']
 
+      assert_boolean "#{key}.negatable", value['negatable']
       assert_boolean "#{key}.private", value['private']
       assert_boolean "#{key}.repeatable", value['repeatable']
       assert_boolean "#{key}.unique", value['unique']
@@ -147,6 +148,13 @@ module Bashly
       refute value['arg'].match(/^-/), "#{key}.arg must not start with '-'" if value['arg']
 
       refute value['required'] && value['default'], "#{key} cannot have both nub`required` and nub`default`"
+
+      if value['negatable']
+        assert value['long'], "#{key}.negatable requires nub`long`"
+        refute value['arg'], "#{key}.negatable does not make sense with nub`arg`"
+        refute value['repeatable'], "#{key}.negatable does not make sense with nub`repeatable`"
+        refute value['required'], "#{key}.negatable does not make sense with nub`required`"
+      end
 
       if value['default']
         assert value['arg'], "#{key}.default does not make sense without nub`arg`"
@@ -234,7 +242,7 @@ module Bashly
       assert_array "#{key}.variables", value['variables'], of: :var
 
       assert_uniq "#{key}.commands", value['commands'], %w[name alias]
-      assert_uniq "#{key}.flags", value['flags'], %w[long short alias]
+      assert_uniq_flags key, value['flags']
       assert_uniq "#{key}.args", value['args'], 'name'
 
       if value['function']
@@ -275,6 +283,24 @@ module Bashly
         refute value['version'], "#{key}.version makes no sense"
         refute value['extensible'], "#{key}.extensible makes no sense"
       end
+    end
+
+    def assert_uniq_flags(key, flags)
+      return unless flags
+
+      list = flags.flat_map do |flag|
+        [flag['long'], flag['short'], *Array(flag['alias']), negated_flag_name(flag)].compact
+      end
+
+      nonuniqs = list.nonuniq
+      assert nonuniqs.empty?,
+        "#{key}.flags contains non-unique elements (#{nonuniqs.join ', '}) in long or short or alias"
+    end
+
+    def negated_flag_name(flag)
+      return unless flag['negatable'] == true && flag['long']
+
+      "--no-#{flag['long'].delete_prefix '--'}"
     end
   end
 end
