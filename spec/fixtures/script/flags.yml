@@ -13,6 +13,17 @@
   long: --container
   alias: --pod
 
+:negatable:
+  long: --color
+  short: -c
+  negatable: true
+
+:negatable_with_alias:
+  long: --color
+  short: -c
+  alias: --colour
+  negatable: true
+
 :long_only:
   long: --long
 

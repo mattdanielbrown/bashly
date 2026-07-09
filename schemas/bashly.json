@@ -290,6 +290,12 @@
             ]
           }
         },
+        "negatable": {
+          "title": "negatable",
+          "description": "Whether the current flag also accepts its --no- form\nhttps://bashly.dev/configuration/flag/#negatable",
+          "type": "boolean",
+          "default": false
+        },
         "completions": {
           "title": "completions",
           "description": "Completions of the current flag\nhttps://bashly.dev/configuration/flag/#completions",
