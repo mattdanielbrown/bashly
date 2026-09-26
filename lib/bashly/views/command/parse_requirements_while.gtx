@@ -18,6 +18,16 @@ if catch_all.enabled?
 >       break
 >       ;;
 >
+else
+>     --)
+>       shift
+>       while [[ $# -gt 0 ]]; do
+>         key="$1"
+= render(:parse_requirements_case).indent(8)
+>       done
+>       break
+>       ;;
+>
 end
 
 >     -?*)
